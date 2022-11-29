@@ -179,13 +179,13 @@ def get_members_engagement() -> pd.DataFrame:
     SELECT
         m.name,
         m1.num_channels,
-        m2.num_messages,
-        m2.num_messages / (
+        COALESCE(m2.num_messages,0),
+        COALESCE(m2.num_messages / (
         SELECT
             SUM(num_messages) 
         FROM
-            member_info_2) AS engagement_rate,
-        m2.num_messages / COALESCE(m3.num_messages_last_week, 1) AS change_pct,
+            member_info_2),0) AS engagement_rate,
+        COALESCE(m2.num_messages / COALESCE(m3.num_messages_last_week, 1),0) AS change_pct,
         DATE(m.joined_at) AS joined_at
     FROM
         member_info_1 m1 
@@ -406,13 +406,13 @@ if rad == "Dashboard":
 
     active_users = str(int(df_au.active_users))
     active_user_change = str(round(df_au.change_pct*100, 1).iloc[0]) + " % since last week"
-    col2.metric("Active Users", active_users, active_user_change, help="")
+    col2.metric("Active Users", active_users, active_user_change, help="active users this week")
 
     df_i = get_interactions_info()
 
     interactions = str(int(df_i.interactions))
     interactions_change = str(round(df_i.change_pct*100, 1).iloc[0]) + " % since last week"
-    col3.metric("Interactions", interactions, interactions_change, help="")
+    col3.metric("Interactions", interactions, interactions_change, help="interactions this week")
 
 
     df_au_daily = get_active_users_daily()
